@@ -1,0 +1,5 @@
+# Packages hold the path relative to $HOME (nvim/.config/nvim/...), so the
+# target is $HOME and ~/.config/nvim becomes one symlink to the package.
+# Run stow from the repository root for this to be picked up.
+--target=~
+--dir=.

@@ -1,0 +1,10 @@
+# Editor and OS noise
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Neovim state that must not be tracked: stow folds the package into one
+# symlink, so files Neovim writes into its config directory land here.
+nvim/.config/nvim/spell/
+nvim/.config/nvim/.luarc.json
