@@ -1,0 +1,9 @@
+# Editor and OS noise
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Neovim state that must not be tracked
+nvim/spell/
+nvim/.luarc.json
