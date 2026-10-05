@@ -1,10 +1,9 @@
-local add, later = MiniDeps.add, MiniDeps.later
+local add = require('core.pack')
+local safely = require('mini.misc').safely
 
-later(function()
-  add({ source = 'vinnymeller/swagger-preview.nvim' })
+safely('later', function()
+  add({ 'https://github.com/vinnymeller/swagger-preview.nvim' })
 
-  require('swagger-preview').setup({
-    port = 8000,
-    host = 'localhost',
-  })
+  -- port 8000 and host localhost are the plugin's own defaults.
+  require('swagger-preview').setup()
 end)

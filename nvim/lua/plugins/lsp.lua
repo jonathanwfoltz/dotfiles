@@ -1,17 +1,19 @@
-local add, later = MiniDeps.add, MiniDeps.later
+local add = require('core.pack')
+local safely = require('mini.misc').safely
 
-local servers = { 'cssls', 'ts_ls', 'html', 'tailwindcss', 'pyright', 'gopls' }
+-- eslint is a language server here rather than nvim-lint + eslint_d: it
+-- publishes the same diagnostics, only attaches in a project that has an
+-- eslint config, and needs no guard against a missing executable.
+local servers = {
+  'cssls', 'ts_ls', 'html', 'tailwindcss', 'pyright', 'gopls', 'eslint',
+}
 
-later(function()
+safely('later', function()
   add({
-    source = 'neovim/nvim-lspconfig',
-    depends = {
-      'mason-org/mason.nvim',
-      'mason-org/mason-lspconfig.nvim',
-    },
+    'https://github.com/mason-org/mason.nvim',
+    'https://github.com/mason-org/mason-lspconfig.nvim',
+    'https://github.com/neovim/nvim-lspconfig',
   })
-
-  vim.lsp.set_log_level('info')
 
   require('mason').setup()
   require('mason-lspconfig').setup({ ensure_installed = servers })

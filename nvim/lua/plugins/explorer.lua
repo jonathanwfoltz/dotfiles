@@ -1,9 +1,8 @@
-local later = MiniDeps.later
+local safely = require('mini.misc').safely
 
-later(function()
+safely('later', function()
   local files = require('mini.files')
   files.setup()
 
-  vim.keymap.set('n', '<Leader>lf', function() files.open() end,
-    { desc = 'List files (explorer)' })
+  vim.keymap.set('n', '<Leader>lf', files.open, { desc = 'List files (explorer)' })
 end)

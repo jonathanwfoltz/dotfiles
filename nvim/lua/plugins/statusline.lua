@@ -1,7 +1,7 @@
-local now = MiniDeps.now
+local safely = require('mini.misc').safely
 
 -- Affects first paint, so it runs immediately rather than deferred.
-now(function()
+safely('now', function()
   require('mini.icons').setup({ style = 'glyph' })
   require('mini.statusline').setup()
 end)

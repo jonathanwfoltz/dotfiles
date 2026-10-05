@@ -1,16 +1,14 @@
 -- Editor-global options only. Anything that exists to serve one plugin lives in
 -- that plugin's file instead: folding is in plugins/treesitter.lua, completeopt
--- in plugins/completion.lua.
+-- in plugins/completion.lua. Anything that only restates a Neovim default is
+-- left out: 'termguicolors' is auto-enabled when the terminal supports it, and
+-- 'fileencoding' is buffer-local, so setting it here only ever reached the
+-- first buffer anyway.
 local options = {
-  backup = false,
   clipboard = 'unnamedplus',
   cmdheight = 2,
-  conceallevel = 0,
   cursorline = true,
   expandtab = true,
-  fileencoding = 'utf-8',
-  guifont = 'monospace:h17',
-  hlsearch = true,
   ignorecase = true,
   mouse = '',
   number = true,
@@ -28,8 +26,6 @@ local options = {
   splitright = true,
   swapfile = false,
   tabstop = 2,
-  termguicolors = true,
-  timeoutlen = 1000,
   undofile = true,
   updatetime = 300,
   writebackup = false,

@@ -1,33 +1,20 @@
-local add, later = MiniDeps.add, MiniDeps.later
+local add = require('core.pack')
+local safely = require('mini.misc').safely
 
-later(function()
-  add({ source = 'mhartington/formatter.nvim' })
+safely('later', function()
+  add({ 'https://github.com/stevearc/conform.nvim' })
 
-  local prettierd = function(ft)
-    return require('formatter.filetypes.' .. ft).prettierd
-  end
-
-  require('formatter').setup({
-    logging = false,
-    filetype = {
-      typescript = { prettierd('typescript') },
-      typescriptreact = { prettierd('typescriptreact') },
-      python = {
-        function()
-          return { exe = 'ruff', args = { 'format', '-' }, stdin = true }
-        end,
-      },
-      go = {
-        function()
-          return { exe = 'gofmt', stdin = true }
-        end,
-      },
+  -- conform ships the prettierd, ruff and gofmt definitions, so nothing here
+  -- has to spell out an exe/args/stdin table. format_on_save runs on
+  -- BufWritePre; the old formatter.nvim wiring ran :FormatWrite on BufWritePost,
+  -- which wrote the buffer a second time after the write that triggered it.
+  require('conform').setup({
+    formatters_by_ft = {
+      typescript = { 'prettierd' },
+      typescriptreact = { 'prettierd' },
+      python = { 'ruff_format' },
+      go = { 'gofmt' },
     },
-  })
-
-  vim.api.nvim_create_autocmd('BufWritePost', {
-    group = vim.api.nvim_create_augroup('format_on_save', { clear = true }),
-    desc = 'Format the buffer after writing it',
-    command = 'FormatWrite',
+    format_on_save = { timeout_ms = 500, lsp_format = 'fallback' },
   })
 end)

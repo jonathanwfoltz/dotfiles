@@ -16,26 +16,27 @@ Adding another tool later means creating `tmux/`, `git/` and so on beside
 
 ## nvim
 
-Requires Neovim 0.11 or newer. Plugins are managed by
-[mini.deps](https://github.com/echasnovski/mini.nvim), which `init.lua`
-bootstraps on first launch — there is nothing to install by hand. Plugin
-versions are pinned in `nvim/mini-deps-snap`; refresh it with `:DepsSnapSave`
-after `:DepsUpdate`.
+Requires **Neovim 0.12 or newer**, plus `tree-sitter-cli` 0.26.1+ and a C
+compiler for treesitter parsers. Plugins are managed by Neovim's built-in
+[`vim.pack`](https://neovim.io/doc/user/pack.html) — nothing to bootstrap and
+nothing to install by hand. Revisions are recorded in
+`nvim/nvim-pack-lock.json`, which is tracked; update with `:lua vim.pack.update()`,
+review the diff buffer it opens, then `:write` to accept or `:quit` to discard.
 
 ```
 nvim/
-├── init.lua              leader → bootstrap → core → load every plugin file
-├── mini-deps-snap        pinned plugin commits
+├── init.lua              leader → core → mini.nvim → load every plugin file
+├── nvim-pack-lock.json   plugin revisions, written by vim.pack
 ├── lsp/                  per-server settings, read natively by Neovim
 └── lua/
-    ├── core/             options and keymaps that belong to no plugin
+    ├── core/             options, keymaps and the vim.pack wrapper
     └── plugins/          one feature per file, loaded automatically
 ```
 
 ### Conventions
 
 **One feature per file under `lua/plugins/`.** Each file owns everything about
-that feature: its `MiniDeps.add`, its `setup`, its keymaps, its autocmds, and
+that feature: its `vim.pack.add`, its `setup`, its keymaps, its autocmds, and
 any option that exists only to serve it. Folding lives in `treesitter.lua` and
 `completeopt` in `completion.lua` for that reason — not in `core/options.lua`,
 where they would break if the plugin failed to load.
@@ -46,7 +47,7 @@ file; deleting one is removing it. A configured plugin can never be silently
 left unloaded, which is a mistake this config has made before.
 
 **Load order is irrelevant.** Files schedule their own work with
-`MiniDeps.later`, or `MiniDeps.now` for the two that affect first paint
+`MiniMisc.safely('later', …)`, or `'now'` for the two that affect first paint
 (`colorscheme.lua`, `statusline.lua`). Nothing may depend on the alphabetical
 order of the scan, and nothing may rely on another file having set a `Mini*`
 global — use the value returned by `require('mini.extra')` instead.
@@ -75,7 +76,7 @@ second is what it acts on.
 | `<Leader>rl` | **r**emove **l**abel for the current branch |
 | `<Leader>vl` | **v**iew files **l**abelled with the current branch |
 | `<Leader>lf` | **l**ist **f**iles (explorer) |
-| `<Leader>gb` | **g**it **b**lame (toggle) |
+| `<Leader>gb` | **g**it **b**lame (`:vert Git blame`, scroll-bound to the source) |
 
 Window and buffer movement: `<C-h/j/k/l>` between windows, `<C-z>h/j/k/l` to
 resize, `<S-h>`/`<S-l>` to cycle buffers.
@@ -88,11 +89,20 @@ default.
 ### Languages
 
 LSP, formatting and treesitter parsers are configured for TypeScript/TSX, Python,
-Go, HTML and CSS, plus Tailwind. External tools are expected on `PATH`:
-`prettierd`, `ruff`, `gofmt` and `eslint_d`. Anything missing is skipped rather
-than reported as an error on every buffer.
+Go, HTML and CSS, plus Tailwind. Formatting is
+[conform.nvim](https://github.com/stevearc/conform.nvim) and expects `prettierd`,
+`ruff` and `gofmt` on `PATH`, falling back to the language server where no
+formatter is configured. ESLint arrives as a language server rather than a
+separate linter, so it needs nothing on `PATH` and only attaches in a project
+that has an eslint config.
 
-`nvim-treesitter` is pinned to its `master` branch on purpose: the `main` branch
-calls `vim.list.unique`, which does not exist before Neovim 0.12, so `main`
-requires a nightly build. `nvim/lua/plugins/treesitter.lua` documents the exact
-change to make once you are on 0.12.
+`nvim-treesitter` tracks its `main` branch, which compiles parsers locally with
+`tree-sitter-cli` and attaches per buffer from a `FileType` autocmd. The old
+`master` branch is frozen at Neovim 0.11 and is not usable here.
+
+Git blame and per-buffer HEAD tracking come from `mini.git`, which ships with
+mini.nvim — no separate blame plugin.
+
+Completion is Neovim's own: `'autocomplete'` drives the insert-mode menu and
+`vim.lsp.completion` feeds it LSP items through the omnifunc source. No
+completion plugin is installed.

@@ -1,6 +1,6 @@
-local later = MiniDeps.later
+local safely = require('mini.misc').safely
 
-later(function()
+safely('later', function()
   require('mini.indentscope').setup()
   require('mini.trailspace').setup()
 end)

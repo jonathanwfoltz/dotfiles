@@ -1,39 +1,56 @@
-local add, later = MiniDeps.add, MiniDeps.later
+local add = require('core.pack')
+local safely = require('mini.misc').safely
 
 local parsers = { 'html', 'css', 'typescript', 'tsx', 'python', 'go' }
 
-later(function()
-  -- Pinned to master deliberately. nvim-treesitter's main branch calls
-  -- vim.list.unique, which does not exist before Neovim 0.12, so main requires a
-  -- nightly build. To move once you are on 0.12: checkout = 'main', replace the
-  -- configs.setup call below with
-  --   require('nvim-treesitter').setup()
-  --   require('nvim-treesitter').install(parsers)
-  -- and attach per buffer from a FileType autocmd via vim.treesitter.start.
+-- Filetypes, not parser names: the tsx parser serves typescriptreact.
+local filetypes = { 'html', 'css', 'typescript', 'typescriptreact', 'python', 'go' }
+
+-- The main branch requires Neovim 0.12 and tree-sitter-cli >= 0.26.1, which it
+-- shells out to in order to compile parsers locally. The old master branch is
+-- frozen at Neovim 0.11.
+safely('later', function()
   add({
-    source = 'nvim-treesitter/nvim-treesitter',
-    checkout = 'master',
-    monitor = 'master',
-    hooks = {
-      post_checkout = function() vim.cmd('TSUpdate') end,
+    {
+      src = 'https://github.com/nvim-treesitter/nvim-treesitter',
+      version = 'main',
     },
   })
 
-  require('nvim-treesitter.configs').setup({
-    ensure_installed = parsers,
-    highlight = {
-      enable = true,
-      additional_vim_regex_highlighting = false,
-      use_languagetree = true,
-    },
-    indent = { enable = true },
+  local ts = require('nvim-treesitter')
+  ts.setup()
+  ts.install(parsers)
+
+  -- Recompile parsers whenever vim.pack changes the plugin on disk, which is
+  -- what the old post_checkout hook did.
+  vim.api.nvim_create_autocmd('PackChanged', {
+    group = vim.api.nvim_create_augroup('treesitter_update', { clear = true }),
+    desc = 'Update treesitter parsers after the plugin changes',
+    callback = function(args)
+      local data = args.data
+      if data.spec.name ~= 'nvim-treesitter' then return end
+      if data.kind ~= 'install' and data.kind ~= 'update' then return end
+      require('nvim-treesitter').update()
+    end,
   })
 
-  -- Folding is driven entirely by treesitter, so it is configured here instead
-  -- of core/options.lua, where it would error if treesitter failed to load.
-  vim.opt.foldmethod = 'expr'
-  vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-  vim.opt.foldtext = 'v:lua.vim.treesitter.foldtext()'
-  vim.opt.foldlevelstart = 99
-  vim.opt.foldcolumn = '1'
+  -- main attaches nothing by itself. Highlighting, folding and indenting are all
+  -- per buffer, so they live here rather than in core/options.lua -- and folding
+  -- is now window-local instead of a global that applied to parserless buffers
+  -- too.
+  vim.api.nvim_create_autocmd('FileType', {
+    group = vim.api.nvim_create_augroup('treesitter_attach', { clear = true }),
+    pattern = filetypes,
+    desc = 'Start treesitter and use it for folds and indentation',
+    callback = function()
+      vim.treesitter.start()
+      vim.wo[0][0].foldmethod = 'expr'
+      vim.wo[0][0].foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+      vim.wo[0][0].foldtext = 'v:lua.vim.treesitter.foldtext()'
+      vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end,
+  })
+
+  vim.o.foldlevelstart = 99
+  vim.o.foldcolumn = '1'
 end)

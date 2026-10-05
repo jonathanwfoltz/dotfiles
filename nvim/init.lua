@@ -1,28 +1,21 @@
 -- Leader must be set before any plugin has a chance to map a key.
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-vim.keymap.set('', '<Space>', '<Nop>', { noremap = true, silent = true })
 
 require('core.options')
 require('core.keymaps')
 
--- Bootstrap mini.nvim, which supplies mini.deps for every other plugin.
-local path_package = vim.fn.stdpath('data') .. '/site'
-local mini_path = path_package .. '/pack/deps/start/mini.nvim'
-if not vim.uv.fs_stat(mini_path) then
-  vim.cmd('echo "Installing `mini.nvim`" | redraw')
-  vim.fn.system({
-    'git', 'clone', '--filter=blob:none',
-    'https://github.com/echasnovski/mini.nvim', mini_path,
-  })
-  vim.cmd('packadd mini.nvim | helptags ALL')
-end
-require('mini.deps').setup({ path = { package = path_package } })
+-- mini.nvim supplies most features plus MiniMisc.safely, which every file in
+-- lua/plugins/ uses to schedule itself. vim.pack (Neovim 0.12) needs no
+-- bootstrap: it installs on this call and records the revision in
+-- nvim-pack-lock.json, which is tracked alongside this file.
+-- The org is nvim-mini, not echasnovski -- the old URL only redirects.
+require('core.pack')({ 'https://github.com/nvim-mini/mini.nvim' })
 
 -- Load every file in lua/plugins/. One feature per file, each owning its own
--- MiniDeps.add, setup, keymaps and autocmds -- so adding a plugin is creating a
+-- add, setup, keymaps and autocmds -- so adding a plugin is creating a
 -- file, and a file can never be silently left out. Order here is alphabetical
--- and irrelevant: files schedule themselves with MiniDeps.now/later.
+-- and irrelevant: files schedule themselves with MiniMisc.safely.
 local plugin_dir = vim.fn.stdpath('config') .. '/lua/plugins'
 local names = {}
 for name, entry_type in vim.fs.dir(plugin_dir) do

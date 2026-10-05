@@ -1,7 +1,8 @@
-local add, later = MiniDeps.add, MiniDeps.later
+local add = require('core.pack')
+local safely = require('mini.misc').safely
 
-later(function()
-  add({ source = 'rafamadriz/friendly-snippets' })
+safely('later', function()
+  add({ 'https://github.com/rafamadriz/friendly-snippets' })
 
   local snippets = require('mini.snippets')
   snippets.setup({

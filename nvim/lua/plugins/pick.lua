@@ -1,6 +1,6 @@
-local later = MiniDeps.later
+local safely = require('mini.misc').safely
 
-later(function()
+safely('later', function()
   local pick = require('mini.pick')
   local extra = require('mini.extra')
   pick.setup()
@@ -10,10 +10,11 @@ later(function()
     vim.keymap.set('n', '<Leader>' .. lhs, rhs, { desc = desc })
   end
 
-  map('pf', function() pick.builtin.files() end, 'Pick files')
-  map('pg', function() pick.builtin.grep_live() end, 'Pick grep (live)')
-  map('pd', function() extra.pickers.diagnostic() end, 'Pick diagnostics')
-  map('pk', function() extra.pickers.keymaps() end, 'Pick keymaps')
+  -- vim.keymap.set calls its callback with no arguments, so these need no wrapper.
+  map('pf', pick.builtin.files, 'Pick files')
+  map('pg', pick.builtin.grep_live, 'Pick grep (live)')
+  map('pd', extra.pickers.diagnostic, 'Pick diagnostics')
+  map('pk', extra.pickers.keymaps, 'Pick keymaps')
 
   -- Git-tracked files beneath a single directory.
   local function tracked_files(cwd)

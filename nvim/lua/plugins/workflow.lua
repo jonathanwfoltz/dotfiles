@@ -1,9 +1,10 @@
-local add, later = MiniDeps.add, MiniDeps.later
+local add = require('core.pack')
+local safely = require('mini.misc').safely
 
-later(function()
+safely('later', function()
   add({
-    source = 'm4xshen/hardtime.nvim',
-    depends = { 'MunifTanjim/nui.nvim' },
+    'https://github.com/MunifTanjim/nui.nvim',
+    'https://github.com/m4xshen/hardtime.nvim',
   })
 
   require('hardtime').setup()
