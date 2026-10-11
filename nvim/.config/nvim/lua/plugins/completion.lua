@@ -2,10 +2,13 @@ local safely = require('mini.misc').safely
 
 -- Neovim 0.12 completes in insert mode on its own, so mini.completion is gone.
 -- 'autocomplete' drives the menu, 'complete' names the sources, and the "o"
--- (omnifunc) source is what vim.lsp.completion registers per client below.
+-- (omnifunc) source is what carries LSP items into it.
 safely('later', function()
   vim.o.autocomplete = true
-  vim.o.complete = '.^5,w^5,b^5,o^5'
+  -- "^5" caps a source at five matches, which is right for buffer words and
+  -- wrong for the omnifunc source: that one is the LSP, and capping it silently
+  -- truncates the list well under 'pumheight'.
+  vim.o.complete = '.^5,w^5,b^5,o'
   -- "popup" shows the documentation window mini.completion used to provide,
   -- backed by 0.12's completionItem/resolve support. Signature help is already
   -- core <C-s>, so nothing here duplicates it.
