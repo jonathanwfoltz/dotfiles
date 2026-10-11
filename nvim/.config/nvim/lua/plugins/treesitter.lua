@@ -1,10 +1,18 @@
 local add = require('core.pack')
 local safely = require('mini.misc').safely
 
-local parsers = { 'html', 'css', 'typescript', 'tsx', 'python', 'go' }
+-- 'lua' is bundled with Neovim, so it is listed as a filetype only. 'c' is too,
+-- but installing cpp pulls a local c grammar in alongside it the way tsx pulls
+-- in ecma and jsx, so it ends up compiled either way.
+local parsers = { 'html', 'css', 'typescript', 'tsx', 'python', 'go', 'cpp' }
 
--- Filetypes, not parser names: the tsx parser serves typescriptreact.
-local filetypes = { 'html', 'css', 'typescript', 'typescriptreact', 'python', 'go' }
+-- Filetypes, not parser names: the tsx parser serves typescriptreact. Lua and C
+-- get highlighting from $VIMRUNTIME/ftplugin, but only this autocmd gives them
+-- treesitter folds and indentation.
+local filetypes = {
+  'html', 'css', 'typescript', 'typescriptreact', 'python', 'go',
+  'lua', 'c', 'cpp',
+}
 
 -- The main branch requires Neovim 0.12 and tree-sitter-cli >= 0.26.1, which it
 -- shells out to in order to compile parsers locally. The old master branch is
