@@ -7,7 +7,7 @@ safely('later', function()
   require('mini.git').setup()
 
   vim.keymap.set('n', '<Leader>gb', '<Cmd>vert Git blame -- %<CR>',
-    { desc = 'Git blame (toggle)' })
+    { desc = 'Git blame in a split' })
 
   -- Upstream's recipe: a bare blame split scrolls independently of the source,
   -- which is the one thing blame.nvim did better. Bind the two together.
