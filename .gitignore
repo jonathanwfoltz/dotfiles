@@ -5,5 +5,5 @@
 .DS_Store
 
 # Neovim state that must not be tracked
-nvim/spell/
-nvim/.luarc.json
+nvim/.config/nvim/spell/
+nvim/.config/nvim/.luarc.json
