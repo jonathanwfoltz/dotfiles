@@ -2,7 +2,9 @@
 -- that plugin's file instead: folding is in plugins/treesitter.lua, completeopt
 -- in plugins/completion.lua. Anything that only restates a Neovim default is
 -- left out: 'fileencoding' is buffer-local, so setting it here only ever
--- reached the first buffer anyway.
+-- reached the first buffer anyway. 'smartindent' went the same way -- filetype
+-- indent is on by default, and any filetype with an 'indentexpr' ignores it, so
+-- it only ever applied where its C-flavoured guesses are wrong.
 local options = {
   clipboard = 'unnamedplus',
   cmdheight = 2,
@@ -20,7 +22,6 @@ local options = {
   sidescrolloff = 8,
   signcolumn = 'yes',
   smartcase = true,
-  smartindent = true,
   splitbelow = true,
   splitright = true,
   swapfile = false,
