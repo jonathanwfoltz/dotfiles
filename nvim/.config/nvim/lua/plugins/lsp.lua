@@ -6,6 +6,7 @@ local safely = require('mini.misc').safely
 -- eslint config, and needs no guard against a missing executable.
 local servers = {
   'cssls', 'ts_ls', 'html', 'tailwindcss', 'pyright', 'gopls', 'eslint',
+  'lua_ls', 'clangd',
 }
 
 safely('later', function()
@@ -16,7 +17,14 @@ safely('later', function()
   })
 
   require('mason').setup()
-  require('mason-lspconfig').setup({ ensure_installed = servers })
+  -- automatic_enable defaults to true, which calls vim.lsp.enable for *every*
+  -- installed mason package -- including leftovers from an older config, which
+  -- is how clangd, lua_ls, cmake and lemminx used to start invisibly here. With
+  -- it off, the list above is the whole set and a fresh clone behaves the same.
+  require('mason-lspconfig').setup({
+    ensure_installed = servers,
+    automatic_enable = false,
+  })
 
   -- Per-server settings live in nvim/lsp/<name>.lua, which Neovim reads
   -- natively and merges over the defaults nvim-lspconfig ships. Servers needing
