@@ -123,9 +123,10 @@ second is what it acts on.
 
 | Key | Action |
 | --- | --- |
-| `<Leader>pf` | **p**ick **f**iles |
+| `<Leader>pf` | **p**ick **f**iles outside `./src` and `./test` |
 | `<Leader>ps` | **p**ick **s**ource files (`./src`, git-tracked) |
 | `<Leader>pt` | **p**ick **t**est files (`./test`, git-tracked) |
+| `<Leader>po` | **p**ick leaf f**o**lders — choose one to list its files |
 | `<Leader>pg` | **p**ick by live **g**rep |
 | `<Leader>pd` | **p**ick **d**iagnostics |
 | `<Leader>pp` | **p**ick **p**rojects (`~/projects`) |
