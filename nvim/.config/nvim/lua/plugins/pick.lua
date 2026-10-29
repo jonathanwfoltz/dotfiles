@@ -30,7 +30,7 @@ safely('later', function()
     end
     local command = { 'git' }
     vim.list_extend(command, ls_files)
-    vim.list_extend(command, { '--', ':(exclude)src', ':(exclude)test' })
+    vim.list_extend(command, { '--', ':(exclude)src', ':(exclude)test', ':(exclude)typings' })
     return pick.builtin.cli(
       { command = command },
       { source = { name = 'Files (no src/test)' } }
