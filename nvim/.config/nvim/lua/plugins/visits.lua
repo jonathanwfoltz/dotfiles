@@ -8,8 +8,15 @@ safely('later', function()
   -- per-buffer tracking, set up in plugins/git.lua. Safe because these keymaps
   -- can only fire on user input, long after both 'later' bodies have run.
   local function current_branch()
+    -- mini.git only tracks buffers backed by a readable file, so an unnamed,
+    -- scratch or terminal buffer has no data even inside a repository. Ask git
+    -- about the cwd instead of giving up.
     local data = require('mini.git').get_buf_data(0)
     local branch = data and data.head_name
+    if branch == nil then
+      local out = vim.fn.systemlist({ 'git', 'rev-parse', '--abbrev-ref', 'HEAD' })
+      if vim.v.shell_error == 0 then branch = out[1] end
+    end
     if branch == nil then
       vim.notify('Not inside a git repository', vim.log.levels.WARN)
     end
