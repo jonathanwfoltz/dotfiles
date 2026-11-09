@@ -20,7 +20,7 @@ apt install stow git tmux ripgrep build-essential nodejs npm python3 \
 | | why |
 | --- | --- |
 | `stow`, `git` | the install itself, and `vim.pack` clones over git |
-| `tmux` ≥ 3.2 | `terminal-features`; `~/.config/tmux/tmux.conf` is searched from 3.1 |
+| `tmux` ≥ 3.3 | `pane-colours` and `terminal-features`; `~/.config/tmux/tmux.conf` is searched from 3.1 |
 | Neovim ≥ 0.12 | `vim.pack`, native `lsp/`, `'autocomplete'` — the config refuses to load below this |
 | `tree-sitter-cli` ≥ 0.26.1 + a C compiler | nvim-treesitter's `main` branch compiles parsers locally |
 | `ripgrep` | the pickers; optional, they fall back to `git` then `vim.fs.dir` |
@@ -255,9 +255,10 @@ completion plugin is installed.
 
 ## tmux
 
-Requires **tmux 3.2 or newer**: `~/.config/tmux/tmux.conf` joined the default
+Requires **tmux 3.3 or newer**: `~/.config/tmux/tmux.conf` joined the default
 config search path in 3.1 (so the config needs no `-f` and no
-`$XDG_CONFIG_HOME` to be found) and `terminal-features` arrived in 3.2.
+`$XDG_CONFIG_HOME` to be found), `terminal-features` arrived in 3.2, and
+`pane-colours` and `cursor-colour` in 3.3.
 
 ```
 tmux/.config/tmux/
@@ -299,6 +300,21 @@ Powerline-patched** (the same requirement Neovim's glyph icons already impose).
 The five colours are named once as `%hidden` server options (`TN_BG`,
 `TN_BLOCK`, `TN_FG`, `TN_ACCENT`, `TN_ALERT`), so retheming is a five-line edit;
 tmux expands `#{...}` inside style strings as well as formats.
+
+### Pane colours
+
+The panes use tokyonight-night's terminal palette too, taken from
+`extras/kitty/tokyonight_night.conf` in `folke/tokyonight.nvim`.
+`window-style` sets the default foreground and background (`#c0caf5` on
+`#1a1b26`), `cursor-colour` the cursor, and `pane-colours[0]`–`[15]` the 16
+ANSI colours. tmux substitutes those RGB values whenever a program inside a pane
+asks for colour 0–15, so `ls`, `git diff` and the prompt match Neovim no matter
+what theme the outer terminal (Windows Terminal, an SSH client) is set to.
+Colours 16–255 keep their standard values, which 256-colour programs rely on.
+This depends on the RGB feature below: without it tmux cannot send the
+substituted colours.
+
+### Terminal features
 
 `set -as terminal-features "*:RGB:usstyle"` is there for Neovim. tmux re-renders
 24-bit colour down to the palette it credits the outer terminal with, and over
