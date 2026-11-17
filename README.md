@@ -19,7 +19,7 @@ apt install stow git tmux ripgrep build-essential nodejs npm python3 \
 
 | | why |
 | --- | --- |
-| `stow`, `git` | the install itself, and `vim.pack` clones over git |
+| `stow`, `git` ≥ 2.35 | the install itself, and `vim.pack` clones over git; the git package's `zdiff3` needs 2.35 |
 | `tmux` ≥ 3.3 | `pane-colours` and `terminal-features`; `~/.config/tmux/tmux.conf` is searched from 3.1 |
 | Neovim ≥ 0.12 | `vim.pack`, native `lsp/`, `'autocomplete'` — the config refuses to load below this |
 | `tree-sitter-cli` ≥ 0.26.1 + a C compiler | nvim-treesitter's `main` branch compiles parsers locally |
@@ -209,6 +209,10 @@ when the project declares its own. Auto-import completions are off: pyright
 offers one entry per module that could export a symbol, including modules that
 merely re-export it, and it has no finer filter.
 
+**Lua** is lua_ls, and `lsp/lua_ls.lua` points it at Neovim's runtime so
+`vim.*` resolves and completes while editing this config. A project with its
+own `.luarc.json` is left to it.
+
 **C/C++** is clangd at its defaults, which already include `--background-index`,
 `--clang-tidy` and IWYU header insertion; per-project flags belong in the
 project's `.clangd`. Inlay hints are on where a server provides them.
@@ -252,6 +256,27 @@ nothing until loaded. With `undofile` set, history already outlived the session 
 Completion is Neovim's own: `'autocomplete'` drives the insert-mode menu and
 `vim.lsp.completion` feeds it LSP items through the omnifunc source. No
 completion plugin is installed.
+
+## git
+
+```
+git/.config/git/
+└── config      editor, diff and merge style, rebase and push defaults
+```
+
+`stow git` links `~/.config/git`, which git reads alongside `~/.gitconfig`. If
+`~/.gitconfig` exists it is read *second* and wins wherever the two disagree.
+
+Identity is not tracked. Put `[user] name`/`email` in `~/.config/git/local`,
+which the config includes and `.gitignore` excludes; git skips the include
+when the file is missing.
+
+`merge.conflictStyle = zdiff3` puts the common ancestor between the conflict
+markers and needs **git 2.35** — Ubuntu 22.04 ships 2.34, and there git refuses
+to merge at all. The rest of the file is ignored by an older git rather than
+rejected. `rerere` remembers how a conflict was resolved and replays it;
+`rebase.updateRefs` moves the branches stacked on top of a rebased one along
+with it.
 
 ## tmux
 
@@ -328,3 +353,17 @@ not affect a running server — `tmux source-file ~/.config/tmux/tmux.conf` appl
 it, or start a fresh server. `terminal-features` is read once more per client, as
 it attaches, so after setting it detach and re-attach (`<prefix> d`, then
 `tmux attach`) — the session and its panes survive.
+
+## CI
+
+`.github/workflows/check.yml` runs on every push:
+
+- **nvim** — stows the package and starts Neovim headless, on 0.12.0 and on the
+  current stable release. `.github/scripts/nvim-smoke.lua` waits for every
+  plugin file's `later` block and fails on any warning or error raised while
+  loading. A plugin added without its lockfile entry fails the job too, since
+  `vim.pack` rewrites `nvim-pack-lock.json`.
+- **tmux** — sources `tmux.conf` into a throwaway server, and counts the
+  status line's U+E0B0 / U+E0B2 separators (three and four).
+- **shell-and-git** — `shellcheck` on `sessions/*.sh`, and a parse of the git
+  config.

@@ -1,0 +1,29 @@
+# Identity is per machine: put [user] in ~/.config/git/local, which is
+# untracked. A missing include is skipped silently.
+[include]
+	path = local
+
+[core]
+	editor = nvim
+
+[init]
+	defaultBranch = main
+
+[diff]
+	algorithm = histogram
+	colorMoved = default
+
+# NOTE: zdiff3 needs git 2.35 -- older git refuses to merge at all. Adds the
+# common ancestor between the markers; nvim's <Leader>pc/pH still parse it.
+[merge]
+	conflictStyle = zdiff3
+
+[rerere]
+	enabled = true
+
+[rebase]
+	autoStash = true
+	updateRefs = true
+
+[push]
+	autoSetupRemote = true

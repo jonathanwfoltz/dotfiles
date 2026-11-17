@@ -1,0 +1,72 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  nvim:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # The minimum init.lua accepts, and whatever is current.
+        version: [v0.12.0, stable]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Neovim ${{ matrix.version }}
+        run: |
+          curl -sSLf "https://github.com/neovim/neovim/releases/download/${{ matrix.version }}/nvim-linux-x86_64.tar.gz" \
+            | tar xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      # nvim-treesitter starts compiling parsers on load; without the CLI that
+      # fails, and the failure would be blamed on the config.
+      - name: Install stow and tree-sitter-cli
+        run: |
+          sudo apt-get install -y stow
+          npm install -g tree-sitter-cli
+
+      - name: Stow the nvim package
+        run: stow nvim
+
+      - name: Load the config headless
+        run: timeout 600 nvim --headless --cmd "luafile $GITHUB_WORKSPACE/.github/scripts/nvim-smoke.lua"
+
+      # vim.pack rewrites the lockfile when a plugin is added without it.
+      - name: Lockfile covers every plugin
+        run: git diff --exit-code -- nvim/.config/nvim/nvim-pack-lock.json
+
+  tmux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tmux
+        run: sudo apt-get install -y tmux
+
+      # source-file exits non-zero on any line tmux rejects.
+      - name: Load tmux.conf
+        run: |
+          tmux -L ci -f /dev/null new-session -d \; source-file tmux/.config/tmux/tmux.conf
+          tmux -L ci kill-server
+
+      # tmux.conf's HACK note: a rewrite silently drops these private-use glyphs.
+      - name: Status line separators intact
+        run: |
+          e0b0=$(grep -o $'' tmux/.config/tmux/tmux.conf | wc -l)
+          e0b2=$(grep -o $'' tmux/.config/tmux/tmux.conf | wc -l)
+          echo "U+E0B0: $e0b0 (want 3), U+E0B2: $e0b2 (want 4)"
+          [ "$e0b0" -eq 3 ] && [ "$e0b2" -eq 4 ]
+
+  shell-and-git:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: shellcheck tmux/.config/tmux/sessions/*.sh
+
+      - name: git config parses
+        run: git config --file git/.config/git/config --list

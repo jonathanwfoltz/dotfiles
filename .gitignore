@@ -8,3 +8,6 @@
 # symlink, so files Neovim writes into its config directory land here.
 nvim/.config/nvim/spell/
 nvim/.config/nvim/.luarc.json
+
+# Per-machine git identity, included by git/.config/git/config.
+git/.config/git/local
