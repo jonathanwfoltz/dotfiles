@@ -16,7 +16,7 @@ jobs:
       SHELLCHECK_VERSION: v0.11.0
       TREE_SITTER_VERSION: v0.26.1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: rhysd/action-setup-vim@v1
         with:

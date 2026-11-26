@@ -41,7 +41,7 @@ worth checking before blaming the config:
 Everything else arrives on its own: `vim.pack` installs the plugins at the
 revisions in `nvim-pack-lock.json`, and mason installs the servers, formatters
 and debug adapters on the first *interactive* `nvim` (it skips that work when
-headless, so `make test` stays off the network for it) — watch it with `:Mason`. codelldb and debugpy register
+headless, so `make test` installs nothing from mason) — watch it with `:Mason`. codelldb and debugpy register
 with nvim-dap on the launch after they land.
 
 One requirement is not a package on this machine at all: the **terminal font**
