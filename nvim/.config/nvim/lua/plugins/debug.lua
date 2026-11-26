@@ -24,9 +24,10 @@ safely('later', function()
   end
 
   -- NOTE: handlers = {} looks optional but is what registers the codelldb
-  -- adapter and launch config. ensure_installed is skipped when headless.
+  -- adapter and launch config. Unlike mason-lspconfig, mason-nvim-dap
+  -- installs even when headless, so the list is withheld there by hand.
   require('mason-nvim-dap').setup({
-    ensure_installed = { 'codelldb', 'python' },
+    ensure_installed = #vim.api.nvim_list_uis() > 0 and { 'codelldb', 'python' } or {},
     handlers = {},
   })
 
