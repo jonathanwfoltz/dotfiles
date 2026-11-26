@@ -15,7 +15,9 @@ safely('later', function()
     local branch = data and data.head_name
     if branch == nil then
       local out = vim.fn.systemlist({ 'git', 'rev-parse', '--abbrev-ref', 'HEAD' })
-      if vim.v.shell_error == 0 then branch = out[1] end
+      if vim.v.shell_error == 0 then
+        branch = out[1]
+      end
     end
     if branch == nil then
       vim.notify('Not inside a git repository', vim.log.levels.WARN)
@@ -26,7 +28,9 @@ safely('later', function()
   local function map_branch(lhs, action, desc)
     vim.keymap.set('n', '<Leader>' .. lhs, function()
       local branch = current_branch()
-      if branch == nil then return end
+      if branch == nil then
+        return
+      end
       visits[action](branch)
     end, { desc = desc })
   end
@@ -36,7 +40,9 @@ safely('later', function()
 
   vim.keymap.set('n', '<Leader>vl', function()
     local branch = current_branch()
-    if branch == nil then return end
+    if branch == nil then
+      return
+    end
     require('mini.extra').pickers.visit_paths({ filter = branch })
   end, { desc = 'View files labelled with current branch' })
 

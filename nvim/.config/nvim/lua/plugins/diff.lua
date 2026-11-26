@@ -5,6 +5,7 @@ safely('later', function()
   diff.setup()
 
   -- The overlay is the one feature with no default mapping.
-  vim.keymap.set('n', '<Leader>vd', function() diff.toggle_overlay(0) end,
-    { desc = 'View diff overlay' })
+  vim.keymap.set('n', '<Leader>vd', function()
+    diff.toggle_overlay(0)
+  end, { desc = 'View diff overlay' })
 end)

@@ -10,8 +10,16 @@ local parsers = { 'python', 'cpp', 'cmake', 'toml', 'yaml', 'json', 'bash' }
 -- NOTE: this autocmd is the only thing that starts treesitter -- the main
 -- branch attaches nothing by itself.
 local filetypes = {
-  'python', 'c', 'cpp', 'cmake', 'lua',
-  'toml', 'yaml', 'json', 'sh', 'markdown',
+  'python',
+  'c',
+  'cpp',
+  'cmake',
+  'lua',
+  'toml',
+  'yaml',
+  'json',
+  'sh',
+  'markdown',
 }
 
 -- NOTE: main needs Neovim 0.12 and tree-sitter-cli >= 0.26.1, which it shells
@@ -33,8 +41,12 @@ safely('later', function()
     desc = 'Update treesitter parsers after the plugin changes',
     callback = function(args)
       local data = args.data
-      if data.spec.name ~= 'nvim-treesitter' then return end
-      if data.kind ~= 'install' and data.kind ~= 'update' then return end
+      if data.spec.name ~= 'nvim-treesitter' then
+        return
+      end
+      if data.kind ~= 'install' and data.kind ~= 'update' then
+        return
+      end
       require('nvim-treesitter').update()
     end,
   })

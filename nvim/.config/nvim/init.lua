@@ -3,8 +3,7 @@
 if vim.fn.has('nvim-0.12') == 0 then
   local v = vim.version()
   vim.notify(
-    ('This config needs Neovim 0.12 or newer for vim.pack; this is %d.%d.%d')
-      :format(v.major, v.minor, v.patch),
+    ('This config needs Neovim 0.12 or newer for vim.pack; this is %d.%d.%d'):format(v.major, v.minor, v.patch),
     vim.log.levels.ERROR
   )
   return

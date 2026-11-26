@@ -4,8 +4,7 @@ safely('later', function()
   -- Also tracks HEAD per buffer, which plugins/visits.lua reads.
   require('mini.git').setup()
 
-  vim.keymap.set('n', '<Leader>gb', '<Cmd>vert Git blame -- %<CR>',
-    { desc = 'Git blame in a split' })
+  vim.keymap.set('n', '<Leader>gb', '<Cmd>vert Git blame -- %<CR>', { desc = 'Git blame in a split' })
 
   -- Upstream's recipe: a bare blame split scrolls independently of its source.
   vim.api.nvim_create_autocmd('User', {
@@ -13,7 +12,9 @@ safely('later', function()
     pattern = 'MiniGitCommandSplit',
     desc = 'Align a blame split with the window it came from',
     callback = function(args)
-      if args.data.git_subcommand ~= 'blame' then return end
+      if args.data.git_subcommand ~= 'blame' then
+        return
+      end
 
       local win_src = args.data.win_source
       vim.wo.wrap = false
@@ -32,8 +33,7 @@ safely('later', function()
     )
   end
 
-  vim.keymap.set('n', '<Leader>pc', pick.registry.conflicts,
-    { desc = 'Pick conflicted files' })
+  vim.keymap.set('n', '<Leader>pc', pick.registry.conflicts, { desc = 'Pick conflicted files' })
 
   -- Every uncommitted hunk in the repository, where mini.diff's [h/]h walk one
   -- buffer. An unmerged path has no stage 0, so `git diff --patch` emits a
@@ -43,7 +43,9 @@ safely('later', function()
   -- reaches the raw picker.
   local function git_lines(...)
     local out = vim.fn.systemlist({ 'git', ... })
-    if vim.v.shell_error ~= 0 then return nil end
+    if vim.v.shell_error ~= 0 then
+      return nil
+    end
     return out
   end
 
@@ -61,7 +63,11 @@ safely('later', function()
             start = i
           elseif l:find('^>>>>>>> ') ~= nil and start ~= nil then
             items[#items + 1] = {
-              path = rel, lnum = start, col = 1, end_lnum = i, end_col = 1,
+              path = rel,
+              lnum = start,
+              col = 1,
+              end_lnum = i,
+              end_col = 1,
               text = string.format('%s:%d %s', rel, start, lines[start]),
             }
             start = nil
@@ -73,7 +79,9 @@ safely('later', function()
       -- hand: still unmerged, so it must not drop out of the list.
       if #items == n then
         items[#items + 1] = {
-          path = rel, lnum = 1, col = 1,
+          path = rel,
+          lnum = 1,
+          col = 1,
           text = string.format('%s:1 (unmerged, no conflict markers)', rel),
         }
       end
@@ -89,7 +97,9 @@ safely('later', function()
     end
 
     local unmerged = git_lines('diff', '--name-only', '--diff-filter=U') or {}
-    if #unmerged == 0 then return require('mini.extra').pickers.git_hunks() end
+    if #unmerged == 0 then
+      return require('mini.extra').pickers.git_hunks()
+    end
 
     return pick.start({
       source = {
@@ -100,6 +110,5 @@ safely('later', function()
     })
   end
 
-  vim.keymap.set('n', '<Leader>pH', pick.registry.hunks,
-    { desc = 'Pick git hunks' })
+  vim.keymap.set('n', '<Leader>pH', pick.registry.hunks, { desc = 'Pick git hunks' })
 end)

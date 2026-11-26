@@ -15,16 +15,24 @@ end
 -- declaration: pyright needs venv alongside it to resolve an interpreter, so
 -- standing down on venvPath would fall back to PATH.
 local function declares_own_env(root)
-  if vim.uv.fs_stat(vim.fs.joinpath(root, 'pyrightconfig.json')) then return true end
+  if vim.uv.fs_stat(vim.fs.joinpath(root, 'pyrightconfig.json')) then
+    return true
+  end
 
   local pyproject = vim.fs.joinpath(root, 'pyproject.toml')
-  if not vim.uv.fs_stat(pyproject) then return false end
+  if not vim.uv.fs_stat(pyproject) then
+    return false
+  end
 
   local in_pyright = false
   for _, line in ipairs(vim.fn.readfile(pyproject)) do
     local section = line:match('^%s*%[(.-)%]')
-    if section then in_pyright = section == 'tool.pyright' end
-    if in_pyright and line:match('^%s*venv%s*=') then return true end
+    if section then
+      in_pyright = section == 'tool.pyright'
+    end
+    if in_pyright and line:match('^%s*venv%s*=') then
+      return true
+    end
   end
 
   return false
@@ -37,10 +45,14 @@ return {
   -- gone out by now, hence notifying by hand.
   on_init = function(client)
     local root = client.root_dir or vim.fn.getcwd()
-    if declares_own_env(root) then return end
+    if declares_own_env(root) then
+      return
+    end
 
     local python = venv_python(root)
-    if not python or not vim.uv.fs_stat(python) then return end
+    if not python or not vim.uv.fs_stat(python) then
+      return
+    end
 
     client.settings = vim.tbl_deep_extend('force', client.settings or {}, {
       python = { pythonPath = python },
