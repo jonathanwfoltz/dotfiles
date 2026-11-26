@@ -34,8 +34,14 @@ safely('later', function()
   -- debugpy comes from mason, not the project: a `uv init` venv has none.
   -- NOTE: built from the install root, not mason-registry, whose
   -- get_package() raises until plugins/lsp.lua has refreshed it.
-  local debugpy =
-    vim.fs.joinpath(require('mason.settings').current.install_root_dir, 'packages', 'debugpy', 'venv', 'bin', 'python')
+  local debugpy = vim.fs.joinpath(
+    require('mason.settings').current.install_root_dir,
+    'packages',
+    'debugpy',
+    'venv',
+    'bin',
+    'python'
+  )
   if vim.uv.fs_stat(debugpy) then
     require('dap-python').setup(debugpy)
   end

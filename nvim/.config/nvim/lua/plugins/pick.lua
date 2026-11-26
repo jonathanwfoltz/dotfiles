@@ -126,7 +126,10 @@ safely('later', function()
         pick.builtin.files(nil, { source = { cwd = item.path } })
       end)
     end
-    return extra.pickers.explorer({ cwd = vim.fn.expand('~/projects') }, { source = { choose = choose } })
+    return extra.pickers.explorer(
+      { cwd = vim.fn.expand('~/projects') },
+      { source = { choose = choose } }
+    )
   end
 
   map('pp', pick.registry.projects, 'Pick projects')

@@ -4,7 +4,12 @@ safely('later', function()
   -- Also tracks HEAD per buffer, which plugins/visits.lua reads.
   require('mini.git').setup()
 
-  vim.keymap.set('n', '<Leader>gb', '<Cmd>vert Git blame -- %<CR>', { desc = 'Git blame in a split' })
+  vim.keymap.set(
+    'n',
+    '<Leader>gb',
+    '<Cmd>vert Git blame -- %<CR>',
+    { desc = 'Git blame in a split' }
+  )
 
   -- Upstream's recipe: a bare blame split scrolls independently of its source.
   vim.api.nvim_create_autocmd('User', {
