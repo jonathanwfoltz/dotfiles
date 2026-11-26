@@ -41,7 +41,7 @@ worth checking before blaming the config:
 Everything else arrives on its own: `vim.pack` installs the plugins at the
 revisions in `nvim-pack-lock.json`, and mason installs the servers, formatters
 and debug adapters on the first *interactive* `nvim` (it skips that work when
-headless, by design) — watch it with `:Mason`. codelldb and debugpy register
+headless, so `make test` stays off the network for it) — watch it with `:Mason`. codelldb and debugpy register
 with nvim-dap on the launch after they land.
 
 One requirement is not a package on this machine at all: the **terminal font**
@@ -59,6 +59,10 @@ the repository root a tool is linked by name and no install script is needed:
 stow nvim
 ```
 
+`make stow` links every package in the `Makefile`'s `PACKAGES` list
+(`stow nvim tmux`), and `make stow PACKAGES="tmux"` links a subset. Never run
+`stow */`: `scripts/` sits at the root too, and is not a package.
+
 That creates `~/.config/nvim` as a single symlink to `nvim/.config/nvim`, so
 files added to the repository later show up without re-stowing. `stow -D nvim`
 removes the link; `stow -R nvim` replaces it.
@@ -66,6 +70,21 @@ removes the link; `stow -R nvim` replaces it.
 Adding another tool means creating the package with the same shape and stowing
 it the same way — `git/.config/git/`, or `bash/.bashrc` for something that
 belongs at `$HOME` rather than under `~/.config`.
+
+## Checks
+
+`make check` runs the three below; each is also a target of its own. The
+scripts behind them live in `scripts/`, which is never stowed.
+
+| Target | What it does |
+| --- | --- |
+| `make doctor` | Reports the prerequisites above and fails if a required one is missing or too old. Optional tools (fzf, zoxide, bat, fd, rg, stylua, shellcheck) are only reported. Also checks for a UTF-8 locale and whether each package's links point into this checkout. It never installs anything. |
+| `make lint` | `stylua --check` on every Lua file, shellcheck on the shell scripts, a parse of `tmux.conf` on a throwaway tmux server, and the glyph count from the `HACK:` comment in `tmux.conf`. A missing tool is skipped with a warning, or fails the run with `STRICT=1`. |
+| `make test` | Loads the nvim config from this checkout with `--headless` and throwaway XDG data, state and cache directories. It fails on any warning or error. It then checks that every plugin is at its lockfile revision and that the lockfile was not rewritten. Parsers are built, so it needs network access, `tree-sitter-cli` and a C compiler. It does not install mason's tools or attach an LSP server. |
+
+The test waits `CHECK_GRACE_MS` (default 30000) after the last deferred plugin
+setup for parser builds to finish. GitHub Actions runs `STRICT=1 make lint test`
+on every push and pull request (`.github/workflows/check.yml`).
 
 ## nvim
 
