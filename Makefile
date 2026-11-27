@@ -1,6 +1,6 @@
 # Stowed in this order on a fresh install; any subset works, e.g.
 #   make stow PACKAGES="nvim"
-PACKAGES := nvim tmux
+PACKAGES := git nvim tmux
 
 .PHONY: check doctor lint test stow
 

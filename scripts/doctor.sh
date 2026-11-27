@@ -63,7 +63,7 @@ require nvim 0.12 nvim --version
 require tmux 3.3 tmux -V
 require bash 4.4 bash --version
 require_cmd stow stow
-require_cmd git git
+require git 2.38 git --version
 require tree-sitter-cli 0.26.1 tree-sitter --version
 require_cmd 'C compiler' cc gcc clang
 require_cmd node node
@@ -102,6 +102,11 @@ fi
 
 echo 'Links'
 for pkg in "$@"; do
+  # NOTE: without ~/.gitconfig, `git config --global` writes identity into
+  # the stowed, tracked config.
+  if [ "$pkg" = git ] && [ ! -e "$HOME/.gitconfig" ]; then
+    warn 'git: ~/.gitconfig is missing; touch it before setting your identity'
+  fi
   if [ ! -d "$root/$pkg" ]; then
     fail "$pkg: no such package in $root"
     failed=1
@@ -117,7 +122,7 @@ for pkg in "$@"; do
     else
       foreign+=("${target/#"$HOME"/\~}")
     fi
-  done < <(git -C "$root" ls-files -z -- "$pkg")
+  done < <(git -C "$root" ls-files -z --cached --others --exclude-standard -- "$pkg")
 
   if [ ${#foreign[@]} -gt 0 ]; then
     warn "$pkg: ${#foreign[@]} path(s) not from this checkout, so stow will refuse: ${foreign[*]}"

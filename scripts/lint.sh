@@ -65,6 +65,13 @@ else
   missing tmux
 fi
 
+if git config --file git/.config/git/config --list >/dev/null; then
+  ok 'git config parses'
+else
+  fail 'git config: git/.config/git/config'
+  failed=1
+fi
+
 # The HACK: comment in tmux.conf says why these counts are fixed.
 count() { LC_ALL=C grep -o "$1" "$conf" | wc -l; }
 right=$(count $'\xee\x82\xb0')
