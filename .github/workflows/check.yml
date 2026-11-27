@@ -1,0 +1,46 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      STYLUA_VERSION: v2.6.0
+      SHELLCHECK_VERSION: v0.11.0
+      TREE_SITTER_VERSION: v0.26.1
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: v0.12.6
+
+      - name: Install lint tools, tree-sitter-cli and tmux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential tmux
+          bin="$HOME/.local/bin"
+          mkdir -p "$bin"
+          gh_dl=https://github.com
+          curl -fsSL -o /tmp/stylua.zip \
+            "$gh_dl/JohnnyMorganz/StyLua/releases/download/$STYLUA_VERSION/stylua-linux-x86_64.zip"
+          unzip -o /tmp/stylua.zip stylua -d "$bin"
+          curl -fsSL "$gh_dl/koalaman/shellcheck/releases/download/$SHELLCHECK_VERSION/shellcheck-$SHELLCHECK_VERSION.linux.x86_64.tar.xz" \
+            | tar -xJ -C /tmp
+          install /tmp/shellcheck-$SHELLCHECK_VERSION/shellcheck "$bin"
+          curl -fsSL "$gh_dl/tree-sitter/tree-sitter/releases/download/$TREE_SITTER_VERSION/tree-sitter-linux-x64.gz" \
+            | gunzip > "$bin/tree-sitter"
+          chmod +x "$bin/stylua" "$bin/tree-sitter"
+          echo "$bin" >> "$GITHUB_PATH"
+
+      - run: make lint test
+        env:
+          STRICT: 1

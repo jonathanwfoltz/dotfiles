@@ -7,6 +7,5 @@ safely('later', function()
   local trailspace = require('mini.trailspace')
   trailspace.setup()
 
-  vim.keymap.set('n', '<Leader>tw', trailspace.trim,
-    { desc = 'Trim trailing whitespace' })
+  vim.keymap.set('n', '<Leader>tw', trailspace.trim, { desc = 'Trim trailing whitespace' })
 end)

@@ -19,12 +19,15 @@ safely('later', function()
   -- NOTE: setup() puts mason's bin on PATH, and codelldb is resolved with
   -- exepath() at require time -- without this the adapter gets no command.
   local mason = require('mason')
-  if not mason.has_setup then mason.setup() end
+  if not mason.has_setup then
+    mason.setup()
+  end
 
   -- NOTE: handlers = {} looks optional but is what registers the codelldb
-  -- adapter and launch config. ensure_installed is skipped when headless.
+  -- adapter and launch config. Unlike mason-lspconfig, mason-nvim-dap
+  -- installs even when headless, so the list is withheld there by hand.
   require('mason-nvim-dap').setup({
-    ensure_installed = { 'codelldb', 'python' },
+    ensure_installed = #vim.api.nvim_list_uis() > 0 and { 'codelldb', 'python' } or {},
     handlers = {},
   })
 
@@ -33,19 +36,33 @@ safely('later', function()
   -- get_package() raises until plugins/lsp.lua has refreshed it.
   local debugpy = vim.fs.joinpath(
     require('mason.settings').current.install_root_dir,
-    'packages', 'debugpy', 'venv', 'bin', 'python'
+    'packages',
+    'debugpy',
+    'venv',
+    'bin',
+    'python'
   )
-  if vim.uv.fs_stat(debugpy) then require('dap-python').setup(debugpy) end
+  if vim.uv.fs_stat(debugpy) then
+    require('dap-python').setup(debugpy)
+  end
 
   dapui.setup()
 
   -- NOTE: wrapped, not passed by reference -- dap calls listeners with
   -- (session, body) and dapui reads arg 1 as options, leaving panels up.
   -- disconnect is omitted upstream and is the only event terminate() fires.
-  dap.listeners.after.event_initialized.dapui = function() dapui.open() end
-  dap.listeners.before.event_terminated.dapui = function() dapui.close() end
-  dap.listeners.before.event_exited.dapui = function() dapui.close() end
-  dap.listeners.before.disconnect.dapui = function() dapui.close() end
+  dap.listeners.after.event_initialized.dapui = function()
+    dapui.open()
+  end
+  dap.listeners.before.event_terminated.dapui = function()
+    dapui.close()
+  end
+  dap.listeners.before.event_exited.dapui = function()
+    dapui.close()
+  end
+  dap.listeners.before.disconnect.dapui = function()
+    dapui.close()
+  end
 
   local function map(lhs, rhs, desc)
     vim.keymap.set('n', '<Leader>' .. lhs, rhs, { desc = desc })
@@ -58,5 +75,7 @@ safely('later', function()
   map('do', dap.step_out, 'Debug: step out')
   map('du', dapui.toggle, 'Debug: toggle UI')
   map('dq', dap.terminate, 'Debug: quit session')
-  map('dt', function() require('dap-python').test_method() end, 'Debug: test method under cursor')
+  map('dt', function()
+    require('dap-python').test_method()
+  end, 'Debug: test method under cursor')
 end)

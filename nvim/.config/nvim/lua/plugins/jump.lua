@@ -7,6 +7,7 @@ safely('later', function()
   -- quickfix window, which the editor special-cases rather than maps.
   jump2d.setup({ mappings = { start_jumping = '' } })
 
-  vim.keymap.set({ 'n', 'x', 'o' }, '<Leader>js', function() jump2d.start() end,
-    { desc = 'Jump to spot' })
+  vim.keymap.set({ 'n', 'x', 'o' }, '<Leader>js', function()
+    jump2d.start()
+  end, { desc = 'Jump to spot' })
 end)

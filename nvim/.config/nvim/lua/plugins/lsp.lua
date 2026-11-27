@@ -16,7 +16,9 @@ safely('later', function()
   -- NOTE: guarded -- plugins/debug.lua also needs mason and either may run
   -- first; setup() appends its registries on every call.
   local mason = require('mason')
-  if not mason.has_setup then mason.setup() end
+  if not mason.has_setup then
+    mason.setup()
+  end
 
   -- NOTE: defaults to true, which enables every installed mason package
   -- rather than this list -- and nothing at all on a fresh clone.
@@ -44,8 +46,7 @@ safely('later', function()
 
       -- Core already gives grn, gra, grr, gri, gO, K and <C-s>. Definition is
       -- the one with no default.
-      vim.keymap.set('n', 'gd', vim.lsp.buf.definition,
-        { buffer = buf, desc = 'Go to definition' })
+      vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { buffer = buf, desc = 'Go to definition' })
 
       if client and client:supports_method('textDocument/inlayHint') then
         vim.lsp.inlay_hint.enable(true, { bufnr = buf })
@@ -57,8 +58,12 @@ safely('later', function()
       -- NOTE: not in an lsp/clangd.lua -- a user file's on_attach replaces
       -- lspconfig's, deleting the command this maps to.
       if client and client.name == 'clangd' then
-        vim.keymap.set('n', '<Leader>sh', '<Cmd>LspClangdSwitchSourceHeader<CR>',
-          { buffer = buf, desc = 'Switch between source and header' })
+        vim.keymap.set(
+          'n',
+          '<Leader>sh',
+          '<Cmd>LspClangdSwitchSourceHeader<CR>',
+          { buffer = buf, desc = 'Switch between source and header' }
+        )
       end
     end,
   })

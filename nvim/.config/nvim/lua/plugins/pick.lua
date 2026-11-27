@@ -12,7 +12,9 @@ safely('later', function()
 
   local function git_lines(...)
     local out = vim.fn.systemlist({ 'git', ... })
-    if vim.v.shell_error ~= 0 then return nil end
+    if vim.v.shell_error ~= 0 then
+      return nil
+    end
     return out
   end
 
@@ -31,10 +33,7 @@ safely('later', function()
     local command = { 'git' }
     vim.list_extend(command, ls_files)
     vim.list_extend(command, { '--', ':(exclude)src', ':(exclude)test', ':(exclude)typings' })
-    return pick.builtin.cli(
-      { command = command },
-      { source = { name = 'Files (no src/test)' } }
-    )
+    return pick.builtin.cli({ command = command }, { source = { name = 'Files (no src/test)' } })
   end
 
   map('pf', pick.registry.other_files, 'Pick files (excluding ./src, ./test)')
@@ -89,7 +88,9 @@ safely('later', function()
           break
         end
       end
-      if is_leaf then table.insert(leaves, dir) end
+      if is_leaf then
+        table.insert(leaves, dir)
+      end
     end
     table.sort(leaves)
 

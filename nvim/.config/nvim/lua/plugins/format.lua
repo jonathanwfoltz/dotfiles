@@ -16,7 +16,9 @@ safely('later', function()
   local function when_config(names, formatter)
     return function(bufnr)
       local dir = vim.fs.dirname(vim.api.nvim_buf_get_name(bufnr))
-      if dir == '' then return {} end
+      if dir == '' then
+        return {}
+      end
       return vim.fs.find(names, { path = dir, upward = true })[1] and { formatter } or {}
     end
   end
@@ -31,10 +33,14 @@ safely('later', function()
     end, { path = dir, upward = true, limit = math.huge })
 
     for _, path in ipairs(found) do
-      if vim.fs.basename(path) ~= 'pyproject.toml' then return true end
+      if vim.fs.basename(path) ~= 'pyproject.toml' then
+        return true
+      end
       for _, line in ipairs(vim.fn.readfile(path)) do
         -- [tool.ruff], [tool.ruff.lint] and [tool.ruff.format] all count.
-        if line:match('^%s*%[tool%.ruff[%]%.]') then return true end
+        if line:match('^%s*%[tool%.ruff[%]%.]') then
+          return true
+        end
       end
     end
 
@@ -48,20 +54,28 @@ safely('later', function()
       -- out. Both gated, so a non-ruff project keeps its import order too.
       python = function(bufnr)
         local dir = vim.fs.dirname(vim.api.nvim_buf_get_name(bufnr))
-        if dir == '' or not ruff_config_above(dir) then return {} end
+        if dir == '' or not ruff_config_above(dir) then
+          return {}
+        end
         return { 'ruff_organize_imports', 'ruff_format' }
       end,
       c = clang_format,
       cpp = clang_format,
       cmake = when_config({
-        '.cmake-format.yaml', '.cmake-format.json', '.cmake-format.py',
-        'cmake-format.yaml', 'cmake-format.json', 'cmake-format.py',
+        '.cmake-format.yaml',
+        '.cmake-format.json',
+        '.cmake-format.py',
+        'cmake-format.yaml',
+        'cmake-format.json',
+        'cmake-format.py',
       }, 'cmake_format'),
     },
     -- A function, not a table, so vim.g/vim.b.disable_autoformat can bypass it
     -- without resorting to :noautocmd w.
     format_on_save = function(bufnr)
-      if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then return end
+      if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+        return
+      end
       -- NOTE: lsp_format cannot be overridden per filetype -- merge_default_opts
       -- only fills keys still nil, so a formatters_by_ft entry setting it is a
       -- silent no-op.
