@@ -215,7 +215,9 @@ second is what it acts on.
 | `<Leader>du` | **d**ebug: toggle the **U**I |
 | `<Leader>dq` | **d**ebug: **q**uit the session |
 
-Window and buffer movement: `<C-h/j/k/l>` between windows, `<S-h>`/`<S-l>` to
+Window and buffer movement: `<C-h/j/k/l>` between windows, and on into the
+neighbouring tmux pane at the edge of the layout (`plugins/navigate.lua`; see
+the tmux section), `<S-h>`/`<S-l>` to
 cycle buffers, and `<C-z>` plus `h/j/k/l` to resize — the horizontal keys change
 width and the vertical keys change height, matching tmux's `H/J/K/L`.
 
@@ -410,24 +412,41 @@ tmux/.config/tmux/
     └── server.sh    attach to the "server" session, creating it if absent
 ```
 
-Prefix is `C-f` (`C-b` is unbound; `C-f C-f` sends a literal `C-f`). Copy mode
-uses vi bindings. All of the below are after the prefix:
+Prefix is `C-f` (`C-b` is unbound; `C-f C-f` sends a literal `C-f`).
+
+**`C-h/j/k/l` with no prefix move between panes, and between nvim's splits as
+one layout.** In a pane running nvim, tmux passes the key to nvim. nvim moves
+to the next split, or at the edge of its layout runs `tmux select-pane` to
+leave. No plugin is involved on either side. The cost: inside tmux, the shell
+no longer gets `Ctrl-L` (use `clear`), `Ctrl-J` or `Ctrl-K`.
+
+Copy mode uses vi bindings: `v` starts a selection, `y` copies it and leaves
+copy mode, and `C-v` toggles a rectangle selection. The copy reaches the
+system clipboard through OSC 52, as below.
+
+All of the below are after the prefix:
 
 | Key | Action |
 | --- | --- |
 | `c` | new window, in the current pane's directory |
 | `-` | new pane below, in the current pane's directory |
 | `\|` | new pane to the right, same |
-| `h` `j` `k` `l` | move between panes (repeatable) |
+| `h` `j` `k` `l` | move between panes (repeatable); a fallback for `C-h/j/k/l` |
 | `H` `J` `K` `L` | resize the pane one cell (repeatable) |
 | `C-h` / `C-l` | previous / next window (`n` and `p` are unbound) |
 | `Tab` | last window |
 
-Three options are set beyond the terminal ones below. `set-clipboard on`
+Four options are set beyond the terminal ones below. `set-clipboard on`
 (default `external`) lets a program's *own* OSC 52 through, so Neovim's `"+y`
 reaches Windows' clipboard and not just copy mode's. `focus-events on` (default
-off) forwards the terminal's focus reporting into the pane. `history-limit` is
-50000 lines per pane, up from a default of 2000.
+off) forwards the terminal's focus reporting into the pane, where Neovim's
+`'autoread'` uses it to re-read files changed outside it. `escape-time 10`
+is the default from tmux 3.5; before that it is 500 ms, which makes Esc lag in
+Neovim. `history-limit` is 50000 lines per pane, up from a default of 2000.
+
+There's no session restore and no project switcher: both would need a plugin
+manager. Over SSH, bash attaches to the `server` session on login, and
+`prefix s` lists sessions.
 
 ### Status line
 

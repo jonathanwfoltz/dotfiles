@@ -1,5 +1,5 @@
 -- NOTE: must stay first -- vim.pack is 0.12-only, and below that this would
--- error here and again for all 22 plugin files. Returning stops sourcing.
+-- error here and again for every plugin file. Returning stops sourcing.
 if vim.fn.has('nvim-0.12') == 0 then
   local v = vim.version()
   vim.notify(
