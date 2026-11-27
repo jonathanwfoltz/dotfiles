@@ -19,7 +19,7 @@ apt install stow git tmux ripgrep build-essential nodejs npm python3 \
 
 | | why |
 | --- | --- |
-| `stow`, `git` | the install itself, and `vim.pack` clones over git |
+| `stow`, `git` ≥ 2.38 | the install itself, and `vim.pack` clones over git; the git package's `rebase.updateRefs` needs 2.38 and `zdiff3` 2.35 |
 | `tmux` ≥ 3.3 | `pane-colours` and `terminal-features`; `~/.config/tmux/tmux.conf` is searched from 3.1 |
 | Neovim ≥ 0.12 | `vim.pack`, native `lsp/`, `'autocomplete'` — the config refuses to load below this |
 | `tree-sitter-cli` ≥ 0.26.1 + a C compiler | nvim-treesitter's `main` branch compiles parsers locally |
@@ -59,13 +59,18 @@ the repository root a tool is linked by name and no install script is needed:
 stow nvim
 ```
 
-`make stow` links every package in the `Makefile`'s `PACKAGES` list
-(`stow nvim tmux`), and `make stow PACKAGES="tmux"` links a subset. Never run
-`stow */`: `scripts/` sits at the root too, and is not a package.
-
 That creates `~/.config/nvim` as a single symlink to `nvim/.config/nvim`, so
 files added to the repository later show up without re-stowing. `stow -D nvim`
 removes the link; `stow -R nvim` replaces it.
+
+`make stow` links every package in the `Makefile`'s `PACKAGES` list
+(`stow git nvim tmux`), and `make stow PACKAGES="tmux"` links a subset. Never
+run `stow */`: `scripts/` sits at the root too, and is not a package.
+
+**Before stowing git, run `touch ~/.gitconfig`** and put your identity there.
+Without that file, `git config --global` writes into the stowed, tracked
+config, and your email would end up in this repository. `make doctor` warns
+when it is missing.
 
 Adding another tool means creating the package with the same shape and stowing
 it the same way — `git/.config/git/`, or `bash/.bashrc` for something that
@@ -79,7 +84,7 @@ scripts behind them live in `scripts/`, which is never stowed.
 | Target | What it does |
 | --- | --- |
 | `make doctor` | Reports the prerequisites above and fails if a required one is missing or too old. Optional tools (fzf, zoxide, bat, fd, rg, stylua, shellcheck) are only reported. Also checks for a UTF-8 locale and whether each package's links point into this checkout. It never installs anything. |
-| `make lint` | `stylua --check` on every Lua file, shellcheck on the shell scripts, a parse of `tmux.conf` on a throwaway tmux server, and the glyph count from the `HACK:` comment in `tmux.conf`. A missing tool is skipped with a warning, or fails the run with `STRICT=1`. |
+| `make lint` | `stylua --check` on every Lua file, shellcheck on the shell scripts, a parse of the git config and of `tmux.conf` (on a throwaway tmux server), and the glyph count from the `HACK:` comment in `tmux.conf`. A missing tool is skipped with a warning, or fails the run with `STRICT=1`. |
 | `make test` | Loads the nvim config from this checkout with `--headless` and throwaway XDG data, state and cache directories. It fails on any warning or error. It then checks that every plugin is at its lockfile revision and that the lockfile was not rewritten. Parsers are built, so it needs network access, `tree-sitter-cli` and a C compiler. It does not install mason's tools or attach an LSP server. |
 
 The test waits `CHECK_GRACE_MS` (default 30000) after the last deferred plugin
@@ -271,6 +276,39 @@ nothing until loaded. With `undofile` set, history already outlived the session 
 Completion is Neovim's own: `'autocomplete'` drives the insert-mode menu and
 `vim.lsp.completion` feeds it LSP items through the omnifunc source. No
 completion plugin is installed.
+
+## git
+
+```
+git/.config/git/
+├── config   pull, rebase, merge, diff and push behaviour, plus aliases
+└── ignore   global ignore: *.swp, *~, .nvim.lua
+```
+
+git reads `~/.config/git/config` first and `~/.gitconfig` second, so the
+untracked `~/.gitconfig` wins wherever the two disagree. Identity, commit
+signing and credential helpers belong there, since they differ per machine.
+
+- **Pull rebases** (`pull.rebase`), with `rebase.autoStash`, `autoSquash` and
+  `updateRefs`, so `git fixup <commit>` and then `git rebase -i` squash the
+  fixup into place, and stacked branches move along.
+- **Conflicts use `zdiff3`**, which adds the common ancestor between `|||||||`
+  and `=======`, and `rerere` replays a resolution you have made before.
+  `<Leader>pc` and `<Leader>pH` in nvim only look at the `<<<<<<<` and `>>>>>>>`
+  lines, so they still work.
+- **nvimdiff** is the tool for `git difftool` and `git mergetool`. It's only
+  used when you run those commands; resolving conflicts in the file is the
+  normal workflow.
+- **Diffs** use the histogram algorithm and colour moved lines.
+- `push.autoSetupRemote`, `fetch.prune`, `init.defaultBranch = main`; branches
+  sort by most recent commit, tags by version.
+
+| Alias | Runs |
+| --- | --- |
+| `git lg` | `log --graph --oneline --decorate` |
+| `git st` | `status --short --branch` |
+| `git amend` | `commit --amend --no-edit` |
+| `git fixup <commit>` | `commit --fixup <commit>` |
 
 ## tmux
 

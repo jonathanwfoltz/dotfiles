@@ -1,0 +1,45 @@
+# Identity, signing and credential helpers go in an untracked ~/.gitconfig,
+# which git reads after this file. NOTE: create it before stowing --
+# without it, `git config --global` writes into this tracked file.
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[rebase]
+	autoStash = true
+	autoSquash = true
+	updateRefs = true
+
+# NOTE: zdiff3 needs git 2.35; an older git refuses to merge at all.
+[merge]
+	conflictStyle = zdiff3
+	tool = nvimdiff
+
+[rerere]
+	enabled = true
+
+[diff]
+	algorithm = histogram
+	colorMoved = default
+	tool = nvimdiff
+
+[push]
+	autoSetupRemote = true
+
+[fetch]
+	prune = true
+
+[branch]
+	sort = -committerdate
+
+[tag]
+	sort = version:refname
+
+[alias]
+	lg = log --graph --oneline --decorate
+	st = status --short --branch
+	amend = commit --amend --no-edit
+	fixup = commit --fixup
