@@ -1,0 +1,29 @@
+# ~/.inputrc replaces /etc/inputrc rather than adding to it.
+$include /etc/inputrc
+
+set editing-mode vi
+# NOTE: the default 500 ms makes Esc into normal mode lag.
+set keyseq-timeout 50
+# Beam cursor in insert mode, block in normal mode, as in nvim.
+set show-mode-in-prompt on
+set vi-ins-mode-string \1\e[6 q\2
+set vi-cmd-mode-string \1\e[2 q\2
+
+set completion-ignore-case on
+set show-all-if-ambiguous on
+set colored-stats on
+
+set keymap vi-insert
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+"\eOA": history-search-backward
+"\eOB": history-search-forward
+"\C-a": beginning-of-line
+"\C-e": end-of-line
+"\C-l": clear-screen
+
+set keymap vi-command
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+"\eOA": history-search-backward
+"\eOB": history-search-forward

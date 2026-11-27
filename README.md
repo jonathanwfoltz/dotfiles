@@ -17,6 +17,11 @@ apt install stow git tmux ripgrep build-essential nodejs npm python3 \
             python3-venv python3-pip curl unzip
 ```
 
+Optional, and used by the bash package only where installed: `fzf`, `zoxide`,
+`bat` and `fd` (`apt install fzf zoxide bat fd-find`). On Debian and Ubuntu,
+bat and fd are installed as `batcat` and `fdfind`, and the shell aliases them
+back.
+
 | | why |
 | --- | --- |
 | `stow`, `git` ≥ 2.38 | the install itself, and `vim.pack` clones over git; the git package's `rebase.updateRefs` needs 2.38 and `zdiff3` 2.35 |
@@ -64,13 +69,37 @@ files added to the repository later show up without re-stowing. `stow -D nvim`
 removes the link; `stow -R nvim` replaces it.
 
 `make stow` links every package in the `Makefile`'s `PACKAGES` list
-(`stow git nvim tmux`), and `make stow PACKAGES="tmux"` links a subset. Never
-run `stow */`: `scripts/` sits at the root too, and is not a package.
+(`stow git bash readline ripgrep nvim tmux`), and
+`make stow PACKAGES="bash git"` links a subset; any subset works. Never run
+`stow */`: `scripts/` sits at the root too, and is not a package.
 
-**Before stowing git, run `touch ~/.gitconfig`** and put your identity there.
-Without that file, `git config --global` writes into the stowed, tracked
-config, and your email would end up in this repository. `make doctor` warns
-when it is missing.
+### On a fresh machine
+
+1. Install the prerequisites above.
+2. Run `make doctor` and fix anything it reports as `FAIL`.
+3. `touch ~/.gitconfig` and put your `[user]` name and email there. Without
+   that file, `git config --global` writes into the stowed, tracked config,
+   and your email would end up in this repository. `make doctor` warns when it
+   is missing.
+4. `make stow`. If stow refuses because a real file is in the way, see below.
+5. Optionally, create `~/.bashrc.local` for this machine's settings.
+6. Open a new login shell.
+7. Start `nvim` once interactively, so mason installs its tools.
+
+### When stow refuses: existing files
+
+Distributions put a skeleton `~/.bashrc` (and on Arch a `~/.bash_profile`) in
+every home directory, so stow will refuse on most machines. Commit or stash
+your own changes in this checkout first, then:
+
+```sh
+stow --adopt bash   # moves ~/.bashrc into the repo and links it
+git diff            # shows how this machine's file differed
+git restore .       # puts the repo's version back
+```
+
+Copy anything from the diff worth keeping into `~/.bashrc.local` before the
+`git restore`. The same works for any package.
 
 Adding another tool means creating the package with the same shape and stowing
 it the same way — `git/.config/git/`, or `bash/.bashrc` for something that
@@ -309,6 +338,63 @@ signing and credential helpers belong there, since they differ per machine.
 | `git st` | `status --short --branch` |
 | `git amend` | `commit --amend --no-edit` |
 | `git fixup <commit>` | `commit --fixup <commit>` |
+
+## bash
+
+```
+bash/
+├── .bashrc         environment, history, completion, aliases, prompt
+└── .bash_profile   login shells: sources ~/.bashrc and nothing else
+```
+
+`~/.bashrc.local` is sourced near the end if it exists. Settings for one
+machine go there, never in the tracked file. Debian and Ubuntu's skeleton
+`~/.profile` is no longer read once `~/.bash_profile` exists, so this package
+adds `~/.local/bin` and `~/.cargo/bin` to `PATH` itself.
+
+- **Environment:** `EDITOR` and `VISUAL` are nvim, or vi without it; man pages
+  open in nvim; `LESS='-R -i -F -X'`; `COLORTERM=truecolor` inside tmux.
+  `NPM_CONFIG_PREFIX=~/.local` makes `npm install -g` work without root. It's
+  an environment variable rather than a tracked `~/.npmrc` because `npm login`
+  writes tokens into that file.
+- **History** is appended after every command, so every pane's commands
+  survive, but up-arrow stays per pane. Duplicates and commands starting with
+  a space aren't kept.
+- **Restored from Debian's skeleton**, each only if present: bash-completion,
+  lesspipe, dircolors.
+- **Prompt:** `user@host`, the path and the git branch, in ANSI colours that
+  tmux's `pane-colours` turns into tokyonight's.
+- **Aliases:** `ll`, `la`, `v` for nvim, and colour for `ls` and `grep`.
+  `globstar` is on; `autocd` isn't.
+- **Optional tools, each only if installed:** fzf's key bindings (`Ctrl-R`,
+  `Ctrl-T`, `Alt-C`) with tokyonight colours, listing files with fd or rg;
+  zoxide as `z`, with `cd` left alone; `bat` and `fd` under one name
+  everywhere.
+- **tmux over SSH:** an interactive login over SSH that isn't already in tmux
+  runs `~/.config/tmux/sessions/server.sh`, which attaches to the `server`
+  session. It needs tmux and the tmux package. Put `TMUX_AUTO_ATTACH=0` in
+  `~/.bashrc.local` to turn it off on a machine.
+
+## readline
+
+`readline/.inputrc` sets **vi mode** for bash and every other program using
+readline, such as the python REPL and gdb. It includes `/etc/inputrc` first,
+since a `~/.inputrc` otherwise replaces it.
+
+- The cursor is a beam in insert mode and a block in normal mode, as in nvim.
+- Esc reaches normal mode after 50 ms rather than readline's 500.
+- Up and down search history for what is already typed.
+- `Ctrl-A`, `Ctrl-E` and `Ctrl-L` still work in insert mode.
+- In normal mode, `v` opens the line in `$EDITOR`.
+- Completion ignores case and lists every match on the first Tab.
+
+## ripgrep
+
+`ripgrep/.config/ripgrep/config` holds only `--smart-case`: a lowercase search
+ignores case, one with a capital doesn't. `.bashrc` points
+`RIPGREP_CONFIG_PATH` at it, so it applies to rg in the shell and to nvim's
+live grep (`<Leader>pg`). Hidden files stay excluded, so `.venv` and caches
+don't fill live grep.
 
 ## tmux
 
